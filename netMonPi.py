@@ -29,7 +29,7 @@ isConnected = False
 
 def logChanges(clientDetails, event):
     #log all events into log file and trigger IFTTT action for new connections
-	with open('netMon.log',"a+") as f:
+	with open('netMonPi.log',"a+") as f:
 		f.write('\n @'+datetime.now().strftime("%d-%m-%Y %H:%M:%S")+' : '+clientDetails['name'] + ' (' + clientDetails['ip']+ '/' + clientDetails['mac'] +') ' + event)
 		f.write(', first spotted on ' + clientDetails['firstseen'] + ' and last seen on ' + clientDetails['lastseen'])
 
@@ -38,7 +38,7 @@ def logChanges(clientDetails, event):
 		to_pass['value1'] = event
 		to_pass['value2'] = clientDetails['name']
 		to_pass['value3'] = clientDetails['ip'] + '/' + clientDetails['mac']
-		iftttTrigger.send_notification('netMon', to_pass)
+		iftttTrigger.send_notification('netMonPi', to_pass)
        
 def pingDevices():
 	#loop through existing entries - if any cannot be resolved, log as disconnected
@@ -74,7 +74,7 @@ def main():
 			sleep(15)
 		    
 	#log start-up event
-	with open('netMon.log',"a+") as f:
+	with open('netMonPi.log',"a+") as f:
 		f.write('\n @'+datetime.now().strftime("%d-%m-%Y %H:%M:%S")+' : starup event detected. IP address of this device: '+thisDeviceIP+', gateway: ' +gateway)
     
 	#do nmap - for initial discovery of devices on network
