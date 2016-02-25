@@ -75,8 +75,10 @@ def main():
 		    
 	#log start-up event
 	with open('netMonPi.log',"a+") as f:
-		f.write('\n @'+datetime.now().strftime("%d-%m-%Y %H:%M:%S")+' : starup event detected. IP address of this device: '+thisDeviceIP+', gateway: ' +gateway)
-    
+		f.write('\n @'+datetime.now().strftime("%d-%m-%Y %H:%M:%S")+' : start-up event detected. IP address of this device: '+thisDeviceIP+', gateway: ' +gateway)
+    	
+    	print '\n @'+datetime.now().strftime("%d-%m-%Y %H:%M:%S")+' : start-up event detected. IP address of this device: '+thisDeviceIP+', gateway: ' +gateway
+	
 	#do nmap - for initial discovery of devices on network
 	subprocess.Popen(['nmap', network], stdout=subprocess.PIPE)
 
