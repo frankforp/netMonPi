@@ -15,10 +15,10 @@ In netMonPi.py:
 In iftttTrigger.py:
  * KEY = 'YOUR_API_KEY'
 
-Optionally, create a launcher script launcher.sh (just remove ' char for first three lines)
-'#!/bin/sh
-'# launcher.sh
-'# when Raspberry Pi starts, start python script for monitoring network connections
+Optionally, create a launcher script launcher.sh (just add # char for first three lines)
+!/bin/sh
+launcher.sh
+when Raspberry Pi starts, start python script for monitoring network connections
 cd /home/pi/netMonPi
 sudo python netMonPi.py
 
