@@ -15,3 +15,6 @@ In iftttTrigger.py:
  * KEY = 'YOUR_API_KEY'
 
 Optionally, create a launcher sh script and add it to cron
+
+
+As part of uni work this is linked to WikiHow article: http://www.wikihow.com/Monitor-Network-Connections-Using-Raspberry-Pi
