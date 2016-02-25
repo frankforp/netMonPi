@@ -25,6 +25,7 @@ thisDeviceIp = ''
 pingInterval = 60 #time in seconds between ping actions
 lastPingTime = datetime.now()
 isConnected = False
+triggerIFTTT = False #change this to True if you want to trigger IFTTT notifications; make sure you update credentials in iftttTrigger.py file
 
 
 def logChanges(clientDetails, event):
@@ -33,7 +34,7 @@ def logChanges(clientDetails, event):
 		f.write('\n @'+datetime.now().strftime("%d-%m-%Y %H:%M:%S")+' : '+clientDetails['name'] + ' (' + clientDetails['ip']+ '/' + clientDetails['mac'] +') ' + event)
 		f.write(', first spotted on ' + clientDetails['firstseen'] + ' and last seen on ' + clientDetails['lastseen'])
 
-	if event=='connected' or event=='changed':
+	if (event=='connected' or event=='changed') and triggerIFTTT:
 		to_pass = {}
 		to_pass['value1'] = event
 		to_pass['value2'] = clientDetails['name']
