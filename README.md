@@ -17,4 +17,4 @@ In iftttTrigger.py:
 Optionally, create a launcher sh script and add it to cron
 
 
-As part of uni work this is linked to WikiHow article: http://www.wikihow.com/Monitor-Network-Connections-Using-Raspberry-Pi
+As part of my uni work this is linked to WikiHow article: http://www.wikihow.com/Monitor-Network-Connections-Using-Raspberry-Pi
