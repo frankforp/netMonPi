@@ -67,11 +67,15 @@ def main():
 	#need some delay in case Raspberry Pi just connected to network
 	while not isConnected:
 		try:
-			sleep(15)
 			s.connect((gateway, 80))
 			thisDeviceIP = s.getsockname()[0]
-			isConnected = True
+			if thisDeviceIP.startswith(network[;6]):
+				isConnected = True
+			else:
+				print 'waiting n proper IP for Raspi' 
+				sleep(15)
 		except Exception, e:
+			print e
 			sleep(15)
 		    
 	#log start-up event
