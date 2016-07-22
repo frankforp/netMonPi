@@ -60,79 +60,82 @@ def pingDevices():
 		lastPingTime = datetime.now()
                 
 def main():   
-	#start monitoring
-	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	global isConnected
-    
-	#need some delay in case Raspberry Pi just connected to network
-	while not isConnected:
-		try:
-			s.connect((gateway, 80))
-			thisDeviceIP = s.getsockname()[0]
-			if thisDeviceIP.startswith(network[;6]):
-				isConnected = True
-			else:
-				print 'waiting n proper IP for Raspi' 
+	try:
+		#start monitoring
+		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		global isConnected
+	    
+		#need some delay in case Raspberry Pi just connected to network
+		while not isConnected:
+			try:
+				s.connect((gateway, 80))
+				thisDeviceIP = s.getsockname()[0]
+				if thisDeviceIP.startswith(network[;6]):
+					isConnected = True
+				else:
+					print 'waiting n proper IP for Raspi' 
+					sleep(15)
+			except Exception, e:
+				print e
 				sleep(15)
-		except Exception, e:
-			print e
-			sleep(15)
-		    
-	#log start-up event
-	with open('netMonPi.log',"a+") as f:
-		f.write('\n @'+datetime.now().strftime("%d-%m-%Y %H:%M:%S")+' : start-up event detected. IP address of this device: '+thisDeviceIP+', gateway: ' +gateway)
-    	
-    	print '\n @'+datetime.now().strftime("%d-%m-%Y %H:%M:%S")+' : start-up event detected. IP address of this device: '+thisDeviceIP+', gateway: ' +gateway
+			    
+		#log start-up event
+		with open('netMonPi.log',"a+") as f:
+			f.write('\n @'+datetime.now().strftime("%d-%m-%Y %H:%M:%S")+' : start-up event detected. IP address of this device: '+thisDeviceIP+', gateway: ' +gateway)
+	    	
+	    	print '\n @'+datetime.now().strftime("%d-%m-%Y %H:%M:%S")+' : start-up event detected. IP address of this device: '+thisDeviceIP+', gateway: ' +gateway
+		
+		#do nmap - for initial discovery of devices on network
+		subprocess.Popen(['nmap', network], stdout=subprocess.PIPE)
 	
-	#do nmap - for initial discovery of devices on network
-	subprocess.Popen(['nmap', network], stdout=subprocess.PIPE)
-
-	while True:
-		packet = rawSocket.recvfrom(2048)
-
-		ethernet_header = packet[0][0:14]
-		ethernet_detailed = struct.unpack("!6s6s2s", ethernet_header)
-
-		arp_header = packet[0][14:42]
-		arp_detailed = struct.unpack("2s2s1s1s2s6s4s6s4s", arp_header)
-
-		#skip non-ARP packets and track only ARP packets going to/from gateway and this device
-		sourceIP = socket.inet_ntoa(arp_detailed[6])
-		destIP = socket.inet_ntoa(arp_detailed[8])
-		ethertype = ethernet_detailed[2]
-            
-		if ethertype != '\x08\x06' or (ethertype == '\x08\x06' and (sourceIP!=thisDeviceIP and sourceIP!=gateway) and (destIP!=thisDeviceIP and destIP!=gateway)):                
-			continue
-
-		macAddress = binascii.hexlify(arp_detailed[5])
-		hostName = socket.getfqdn(sourceIP)
-		clientDetails = {}      
-
-		#check IP address (might have been assigned to different device)
-		addNew = sourceIP!=thisDeviceIP
-		if sourceIP in networkDevices:
-			clientDetails = networkDevices[sourceIP]
-
-			if clientDetails['mac']==macAddress and clientDetails['name']==hostName:
-				addNew=False
+		while True:
+			packet = rawSocket.recvfrom(2048)
+	
+			ethernet_header = packet[0][0:14]
+			ethernet_detailed = struct.unpack("!6s6s2s", ethernet_header)
+	
+			arp_header = packet[0][14:42]
+			arp_detailed = struct.unpack("2s2s1s1s2s6s4s6s4s", arp_header)
+	
+			#skip non-ARP packets and track only ARP packets going to/from gateway and this device
+			sourceIP = socket.inet_ntoa(arp_detailed[6])
+			destIP = socket.inet_ntoa(arp_detailed[8])
+			ethertype = ethernet_detailed[2]
+	            
+			if ethertype != '\x08\x06' or (ethertype == '\x08\x06' and (sourceIP!=thisDeviceIP and sourceIP!=gateway) and (destIP!=thisDeviceIP and destIP!=gateway)):                
+				continue
+	
+			macAddress = binascii.hexlify(arp_detailed[5])
+			hostName = socket.getfqdn(sourceIP)
+			clientDetails = {}      
+	
+			#check IP address (might have been assigned to different device)
+			addNew = sourceIP!=thisDeviceIP
+			if sourceIP in networkDevices:
+				clientDetails = networkDevices[sourceIP]
+	
+				if clientDetails['mac']==macAddress and clientDetails['name']==hostName:
+					addNew=False
+					clientDetails['lastseen'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+					networkDevices[sourceIP] = clientDetails
+	
+			if addNew:
+				if sourceIP in networkDevices:
+					#log that previously logged device is gone and new one exists
+					logChanges(clientDetails, arp_Events[3])
+	                
+				clientDetails['mac'] = macAddress
+				clientDetails['ip'] = sourceIP                                                           
+				clientDetails['name'] = hostName
+				clientDetails['firstseen'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 				clientDetails['lastseen'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 				networkDevices[sourceIP] = clientDetails
-
-		if addNew:
-			if sourceIP in networkDevices:
-				#log that previously logged device is gone and new one exists
-				logChanges(clientDetails, arp_Events[3])
-                
-			clientDetails['mac'] = macAddress
-			clientDetails['ip'] = sourceIP                                                           
-			clientDetails['name'] = hostName
-			clientDetails['firstseen'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-			clientDetails['lastseen'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-			networkDevices[sourceIP] = clientDetails
-
-			#log that new device detected
-			logChanges(clientDetails, arp_Events[1])
-            
+	
+				#log that new device detected
+				logChanges(clientDetails, arp_Events[1])
+            	except Exception, e:
+            		print e
+            		
 		pingDevices()
 
 if __name__ == '__main__':
